@@ -1,39 +1,155 @@
-# mpv for Android
+<div align="center">
 
-[![Build Status](https://github.com/mpv-android/mpv-android/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/mpv-android/mpv-android/actions/workflows/build.yml)
+# Waguri MPV
 
-mpv-android is a video player for Android based on [libmpv](https://github.com/mpv-player/mpv).
+<img src="img/waguri-icon.jpg" alt="Waguri Icon" width="180">
+
+</div>
+
+**MPV Music Player**
+
+A personal-use project (vibe coding).
+
+![Screenshot](img/ss1.png)
+![Screenshot](img/ss2.png)
 
 ## Features
 
-* Hardware and software video decoding
-* Gesture-based seeking, volume/brightness control and more
-* libass support for styled subtitles
-* Secondary (or dual) subtitle support
-* High-quality rendering with advanced settings (scalers, debanding, interpolation, ...)
-* Play network streams with the "Open URL" function
-* Background playback, Picture-in-Picture, keyboard input supported
+- GUI redesigned to look like a music player.
+- Offline file playback.
+- YouTube downloads directly through the server.
 
-### Library?
+## Server Setup
 
-mpv-android is **not** a library/module (AAR) you can import into your app.
+For server setup, refer to the following repository:
 
-If you'd like to use libmpv in your app you can use our code as inspiration.
-The important parts are [`MPVLib`](app/src/main/java/is/xyz/mpv/MPVLib.kt), [`BaseMPVView`](app/src/main/java/is/xyz/mpv/BaseMPVView.kt) and the [native code](app/src/main/jni/).
-Native code is built by [these scripts](buildscripts/).
+https://github.com/DirmdsLab/yt-dlp-script
 
-## Downloads
+**Port:** `7010`
 
-You can download mpv-android from the [Releases section](https://github.com/mpv-android/mpv-android/releases) or
+## App Compilation
 
-[<img src="https://play.google.com/intl/en_us/badges/images/generic/en-play-badge.png" alt="Get it on Google Play" height="80">](https://play.google.com/store/apps/details?id=is.xyz.mpv)
+Clone the repository:
 
-[<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" alt="Get it on F-Droid" height="80">](https://f-droid.org/packages/is.xyz.mpv)
+```bash
+git clone https://github.com/DirmdsLab/waguri-mpv.git
+```
 
-**Note**: Android TV is supported, but only available on F-Droid or by installing the APK manually.
+### Build Environment
 
-## Building from source
+Keep your host OS clean by using a Podman container:
 
-Take a look at the [README](buildscripts/README.md) inside the `buildscripts` directory.
+```bash
+podman run -dit \
+    --name waguri-mpv \
+    -v "$(pwd):/workspace/waguri-mpv:Z" \
+    -w /workspace/waguri-mpv \
+    docker.io/library/ubuntu:24.04 \
+    bash
+```
 
-Some other documentation can be found at this [link](http://mpv-android.github.io/mpv-android/).
+Update the package list and installed packages:
+
+```bash
+apt update && apt upgrade -y
+```
+
+Install the required packages:
+
+```bash
+apt install sudo git default-jdk-headless -y
+```
+
+### Meson Version
+
+Check the installed Meson version:
+
+```bash
+meson --version
+```
+
+The required version is **1.11.0 or newer**.
+
+If the installed version is outdated, upgrade Meson:
+
+```bash
+apt remove meson -y
+apt install python3-pip -y
+pip3 install --break-system-packages --upgrade meson
+```
+
+Verify the installed version:
+
+```bash
+meson --version
+```
+
+Make sure the result is `1.11.0` or newer.
+
+### Build
+
+Navigate to the `buildscripts` directory:
+
+```bash
+cd buildscripts
+```
+
+Download the required dependencies:
+
+```bash
+./download.sh
+```
+
+Build the application:
+
+```bash
+./buildall.sh
+```
+
+## Build Output
+
+After a successful build, the APK files will be available at the following paths:
+
+### All Storage
+
+**Debug:**
+
+```text
+../app/build/outputs/apk/allstorage/debug/app-allstorage-arm64-v8a-debug.apk
+../app/build/outputs/apk/allstorage/debug/app-allstorage-armeabi-v7a-debug.apk
+../app/build/outputs/apk/allstorage/debug/app-allstorage-universal-debug.apk
+```
+
+**Release:**
+
+```text
+../app/build/outputs/apk/allstorage/release/app-allstorage-arm64-v8a-release-unsigned.apk
+../app/build/outputs/apk/allstorage/release/app-allstorage-armeabi-v7a-release-unsigned.apk
+../app/build/outputs/apk/allstorage/release/app-allstorage-universal-release-unsigned.apk
+```
+
+### Default
+
+**Debug:**
+
+```text
+../app/build/outputs/apk/default/debug/app-default-arm64-v8a-debug.apk
+../app/build/outputs/apk/default/debug/app-default-armeabi-v7a-debug.apk
+../app/build/outputs/apk/default/debug/app-default-universal-debug.apk
+```
+
+**Release:**
+
+```text
+../app/build/outputs/apk/default/release/app-default-arm64-v8a-release-unsigned.apk
+../app/build/outputs/apk/default/release/app-default-armeabi-v7a-release-unsigned.apk
+../app/build/outputs/apk/default/release/app-default-universal-release-unsigned.apk
+```
+
+## Installation
+
+Install the ARM64 debug APK using ADB:
+
+```bash
+adb install --user 0 -r app/build/outputs/apk/default/debug/app-default-arm64-v8a-debug.apk
+```

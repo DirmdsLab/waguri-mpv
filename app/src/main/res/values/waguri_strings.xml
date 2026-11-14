@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Music-screen translations intentionally fall back to English until localized. -->
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <string name="waguri_player">Waguri Player</string>
+    <string name="local_library">LOCAL LIBRARY</string>
+    <string name="player_artwork">Player artwork</string>
+    <string name="nothing_playing">Nothing Playing</string>
+    <string name="select_track_hint">Select a track from your library to start playback.</string>
+
+    <string name="media_library">Media Library</string>
+    <string name="choose_folder">Choose Folder</string>
+    <string name="change_folder">Change Folder</string>
+
+    <string name="sort_name">Name</string>
+    <string name="sort_last_modified">Last Modified</string>
+    <string name="sort_duration">Duration</string>
+
+    <string name="folder_not_selected">No folder selected</string>
+    <string name="select_media_folder">Select Your Media Folder</string>
+    <string name="select_media_folder_summary">Choose a folder or open media files directly.</string>
+    <string name="scanning_media">Scanning Media</string>
+    <string name="scanning_media_summary">Reading files and media information...</string>
+    <string name="no_media_found">No Supported Media Found</string>
+    <string name="no_media_found_summary">No supported audio, video, or playlist files are available in this folder.</string>
+    <string name="folder_access_error">Unable to Access Folder</string>
+    <string name="folder_access_error_summary">Please select your media folder again.</string>
+    <string name="folder_summary">%1$s | %2$d files</string>
+    <string name="selected_folder">Selected Folder</string>
+    <string name="unknown_date">Unknown date</string>
+
+    <string name="previous">Previous</string>
+    <string name="play">Play</string>
+    <string name="pause">Pause</string>
+    <string name="next">Next</string>
+    <string name="play_video">Play Video</string>
+    <string name="audio_only">Audio Only</string>
+    <string name="fullscreen">Fullscreen</string>
+    <string name="exit_fullscreen">Exit Fullscreen</string>
+
+    <string name="player_initialization_error">Player Initialization Failed</string>
+    <string name="player_initialization_error_summary">The embedded media engine could not be initialized.</string>
+    <string name="playback_error">Unable to Play Media</string>
+    <string name="playback_error_summary">The selected file could not be opened by the media engine.</string>
+
+    <string name="audio_visualizer">Audio Visualizer</string>
+    <string name="visualizer_permission_denied">Android playback-audio visualization permission was not granted.</string>
+
+    <string name="folder_picker_hint">Choose an accessible media folder.</string>
+    <string name="media_storage_permission_denied">Waguri Player needs audio and video access to scan the selected folder.</string>
+    <string name="use_this_folder">Use this folder</string>
+    <string name="no_media_folders_summary">No supported media folders were found in Android MediaStore. Make sure the media files are indexed and grant audio and video access.</string>
+
+    <string name="uwu_player_title">UwU Player</string>
+    <string name="search_folders">Search folders</string>
+    <string name="no_matching_folders">No matching folders found.</string>
+    <string name="choose_folder_first">Select a folder first.</string>
+
+    <string name="current_artwork">Current artwork</string>
+    <string name="open_media">Open Media</string>
+    <string name="choose_file">Choose File</string>
+    <string name="search_media">Search media</string>
+    <string name="search_media_hint">Search your library</string>
+    <string name="clear_media_search">Clear search</string>
+    <string name="no_search_results">No Matching Media</string>
+    <string name="no_search_results_summary">No media matches “%1$s”.</string>
+    <string name="selected_media_file">Selected media file</string>
+    <string name="file_selected_summary">Selected file: %1$s</string>
+    <string name="unsupported_media_file">This file type is not supported. Choose MP4, MKV, MP3, WEBM, M3U, or M3U8.</string>
+    <string name="m3u_playlist">M3U Playlist</string>
+    <string name="selected_storage">Shared storage</string>
+    <string name="visualizer_permission_title">Playback Visualizer</string>
+    <string name="visualizer_permission_explanation">Android requires RECORD_AUDIO permission for its playback Visualizer effect. UwU Player attaches the effect to the MPV audio session only; it does not open the microphone or listen to sounds around you.</string>
+    <string name="continue_label">Continue</string>
+    <string name="player_options">Player options</string>
+    <string name="ambient_light">Ambient light</string>
+    <string name="ambient_light_settings">Ambient light settings</string>
+    <string name="ambient_light_reach">Reach %1$d%%</string>
+    <string name="video_mode">Video Mode</string>
+    <string name="video_mode_switch_failed">Could not switch the video track. Playback was not restarted.</string>
+    <string name="auto_lyrics">Auto lyrics</string>
+    <string name="lyrics_auto_searching">Looking for lyrics...</string>
+    <string name="lyrics_auto_not_found">No lyrics found for this track. You can still search manually.</string>
+    <string name="sort_order_ascending">%1$s, ascending</string>
+    <string name="sort_order_descending">%1$s, descending</string>
+    <string name="lyrics_download">Download</string>
+    <string name="lyrics_delay">Lyrics delay</string>
+    <string name="lyrics_delay_value">Lyrics delay · %1$s</string>
+    <string name="lyrics_delay_min">−02:00</string>
+    <string name="lyrics_delay_max">+02:00</string>
+    <string name="lyrics_delay_save_description">Save the adjusted lyrics beside the media file</string>
+    <string name="lyrics_delay_saved">Lyrics saved with the new timing.</string>
+    <string name="lyrics_downloaded">Saved</string>
+    <string name="lyrics_download_description">Download lyrics beside this media file</string>
+    <string name="lyrics_saving_to_media_folder">Saving lyrics beside the media file...</string>
+    <string name="lyrics_saved_to_media_folder">Lyrics saved beside the media file as an LRC file.</string>
+    <string name="lyrics_save_location_error">Cannot save beside this media file. Re-select its folder and allow write access.</string>
+    <string name="lyrics_local_file">Local LRC</string>
+    <string name="stop_playback">Stop Playback</string>
+    <string name="playback_stopped">Playback stopped.</string>
+    <string name="stop_playback_failed">Could not stop playback.</string>
+    <string name="aspect_ratio_square">1:1</string>
+    <string name="aspect_ratio_wide">16:9</string>
+    <string name="aspect_ratio_fill">Fill</string>
+    <string name="aspect_ratio_current">Current aspect ratio: %1$s. Tap to switch.</string>
+    <string name="zoom_label_100">100%</string>
+    <string name="zoom_label_25">+25%</string>
+    <string name="zoom_label_50">+50%</string>
+    <string name="zoom_label_75">+75%</string>
+    <string name="zoom_description_100">Reset zoom to 100 percent</string>
+    <string name="zoom_description_25">Zoom in 25 percent</string>
+    <string name="zoom_description_50">Zoom in 50 percent</string>
+    <string name="zoom_description_75">Zoom in 75 percent</string>
+    <string name="exit_player">Exit</string>
+    <string name="no_media_selected">No media selected</string>
+    <string name="library_panel_tabs">Tracks, Lyrics, and YouTube</string>
+    <string name="expand_library_panel">%1$s, %2$s. Show library panel.</string>
+    <string name="collapse_library_panel">Hide library panel</string>
+    <string name="sort_tracks">Sort tracks</string>
+    <string name="sort_tracks_current">Sort tracks. %1$s</string>
+    <string name="remaining_time">Remaining time</string>
+    <string name="total_duration">Total duration</string>
+    <string name="jump_to_top">Jump to top of media list</string>
+    <string name="jump_to_bottom">Jump to bottom of media list</string>
+    <string name="fullscreen_launch_failed">Could not open the fullscreen video player.</string>
+</resources>

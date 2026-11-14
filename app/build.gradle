@@ -8,6 +8,9 @@ android {
     compileSdk = 36
 
     defaultConfig {
+        applicationId "uwu.waguri.mpvplayer"
+
+
         minSdkVersion 23
         targetSdk 36
 
@@ -21,8 +24,12 @@ android {
         def propfile = new File(rootDir, 'ndk.properties')
         if (propfile.exists())
             props.load(new FileInputStream(propfile))
-        ndkVersion = props.getProperty('ndkVersion', '')
-        ndkPath = props.getProperty('ndkRoot', '')
+        def configuredNdkVersion = props.getProperty('ndkVersion', '')
+        def configuredNdkRoot = props.getProperty('ndkRoot', '')
+        if (!configuredNdkVersion.isBlank()) ndkVersion = configuredNdkVersion
+        if (!configuredNdkRoot.isBlank() && new File(configuredNdkRoot).isDirectory()) {
+            ndkPath = configuredNdkRoot
+        }
     }
 
     flavorDimensions "default"
@@ -34,6 +41,16 @@ android {
             versionNameSuffix "-allstorage"
             minSdkVersion 30
         }
+    }
+
+    sourceSets {
+        main { jniLibs.srcDirs = ["src/main/libs"] }
+    }
+
+    // These libraries are built and stripped by buildscripts before packaging.
+    // Packaging must also work when the original native build machine is unavailable.
+    packaging {
+        jniLibs { keepDebugSymbols += ['**/*.so'] }
     }
 
     buildFeatures {
@@ -57,7 +74,7 @@ android {
             reset()
             // include only the ABIs that were actually built
             project.ext.abiCodes.each { abi, _ ->
-                if (new File(project.projectDir, "src/main/jniLibs/${abi}").exists())
+                if (new File(project.projectDir, "src/main/libs/${abi}").exists())
                     include(abi)
             }
             universalApk true // build an APK with all ABIs too
@@ -83,6 +100,7 @@ androidComponents {
 }
 
 dependencies {
+    testImplementation "junit:junit:4.13.2"
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     implementation 'androidx.appcompat:appcompat:1.7.1'
     implementation 'androidx.recyclerview:recyclerview:1.4.0'

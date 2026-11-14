@@ -57,7 +57,9 @@ import kotlin.math.roundToInt
 typealias ActivityResultCallback = (Int, Intent?) -> Unit
 typealias StateRestoreCallback = () -> Unit
 
-class MPVActivity : AppCompatActivity(), MPVLib.EventObserver, TouchGesturesObserver {
+open class MPVActivity : AppCompatActivity(), MPVLib.EventObserver, TouchGesturesObserver {
+    protected open val returnsToMusicPlayer: Boolean = false
+
     // for calls to eventUi() and eventPropertyUi()
     private val eventUiHandler = Handler(Looper.getMainLooper())
     // for use with fadeRunnable1..3
@@ -159,6 +161,7 @@ class MPVActivity : AppCompatActivity(), MPVLib.EventObserver, TouchGesturesObse
     }
 
     private val stopServiceRunnable = Runnable {
+        if (returnsToMusicPlayer) return@Runnable
         val intent = Intent(this, BackgroundPlaybackService::class.java)
         applicationContext.stopService(intent)
     }
@@ -201,6 +204,8 @@ class MPVActivity : AppCompatActivity(), MPVLib.EventObserver, TouchGesturesObse
             topLockBtn.setOnClickListener { lockUI() }
             topPiPBtn.setOnClickListener { goIntoPiP() }
             topMenuBtn.setOnClickListener { openTopMenu() }
+            backToMusicBtn.isVisible = returnsToMusicPlayer
+            backToMusicBtn.setOnClickListener { finishWithResult(RESULT_OK, true) }
             unlockBtn.setOnClickListener { unlockUI() }
             playbackDurationTxt.setOnClickListener {
                 useTimeRemaining = !useTimeRemaining
@@ -279,7 +284,7 @@ class MPVActivity : AppCompatActivity(), MPVLib.EventObserver, TouchGesturesObse
             insetsController.systemBarsBehavior =
                 WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         }
-        if (!packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE))
+        if (returnsToMusicPlayer || !packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE))
             binding.topPiPBtn.visibility = View.GONE
         if (!packageManager.hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN))
             binding.topLockBtn.visibility = View.GONE
@@ -291,7 +296,7 @@ class MPVActivity : AppCompatActivity(), MPVLib.EventObserver, TouchGesturesObse
 
         // Parse the intent
         val filepath = parsePathFromIntent(intent)
-        if (intent.action == Intent.ACTION_VIEW) {
+        if (intent.action == Intent.ACTION_VIEW || returnsToMusicPlayer) {
             parseIntentExtras(intent.extras)
         }
 
@@ -304,6 +309,10 @@ class MPVActivity : AppCompatActivity(), MPVLib.EventObserver, TouchGesturesObse
 
         player.addObserver(this)
         player.initialize(filesDir.path, cacheDir.path)
+        if (returnsToMusicPlayer) {
+            MPVLib.setPropertyString("keep-open", "yes")
+            MPVLib.setPropertyBoolean("pause", intent.getBooleanExtra(MusicFullscreenActivity.EXTRA_PAUSED, false))
+        }
         player.playFile(filepath)
 
         mediaSession = initMediaSession()
@@ -337,6 +346,12 @@ class MPVActivity : AppCompatActivity(), MPVLib.EventObserver, TouchGesturesObse
         if (includeTimePos) {
             result.putExtra("position", psc.position.toInt())
             result.putExtra("duration", psc.duration.toInt())
+            if (returnsToMusicPlayer) {
+                val position = MPVLib.getPropertyDouble("time-pos")
+                if (position != null) result.putExtra("position", (position * 1000).toInt())
+                val paused = MPVLib.getPropertyBoolean("pause") ?: psc.pause
+                result.putExtra(MusicFullscreenActivity.EXTRA_PAUSED, paused)
+            }
         }
         setResult(code, result)
         finish()
@@ -419,7 +434,7 @@ class MPVActivity : AppCompatActivity(), MPVLib.EventObserver, TouchGesturesObse
     }
 
     private fun shouldBackground(): Boolean {
-        if (isFinishing) // about to exit?
+        if (returnsToMusicPlayer || isFinishing) // about to exit?
             return false
         return when (backgroundPlayMode) {
             "always" -> true
@@ -968,7 +983,7 @@ class MPVActivity : AppCompatActivity(), MPVLib.EventObserver, TouchGesturesObse
             return showUnlockControls()
 
         val notYetPlayed = psc.playlistCount - psc.playlistPos - 1
-        if (notYetPlayed <= 0 || !playlistExitWarning) {
+        if (returnsToMusicPlayer || notYetPlayed <= 0 || !playlistExitWarning) {
             finishWithResult(RESULT_OK, true)
             return
         }
@@ -1106,7 +1121,7 @@ class MPVActivity : AppCompatActivity(), MPVLib.EventObserver, TouchGesturesObse
     private fun resolveUri(data: Uri): String? {
         val filepath = when (data.scheme) {
             "file" -> data.path
-            "content" -> translateContentUri(data)
+            "content" -> if (returnsToMusicPlayer) data.toString() else translateContentUri(data)
             // mpv supports data URIs but needs data:// to pass it through correctly
             "data" -> "data://${data.schemeSpecificPart}"
             "http", "https", "rtmp", "rtmps", "rtp", "rtsp", "mms", "mmst", "mmsh",
@@ -1458,7 +1473,7 @@ class MPVActivity : AppCompatActivity(), MPVLib.EventObserver, TouchGesturesObse
                 }
         )
 
-        if (!isPlayingAudio)
+        if (returnsToMusicPlayer || !isPlayingAudio)
             hiddenButtons.add(R.id.backgroundBtn)
         if ((MPVLib.getPropertyInt("chapter-list/count") ?: 0) == 0)
             hiddenButtons.add(R.id.rowChapter)

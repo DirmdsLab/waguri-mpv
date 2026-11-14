@@ -14,16 +14,21 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
 
-    <application
+        <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+<application
         android:allowBackup="true"
         android:resizeableActivity="true"
         android:requestLegacyExternalStorage="true"
         android:preserveLegacyExternalStorage="true"
+        android:networkSecurityConfig="@xml/network_security_config"
         android:supportsRtl="true"
-        android:icon="@mipmap/mpv_launcher_icon"
-        android:roundIcon="@mipmap/mpv_launcher_icon"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:banner="@mipmap/ic_banner"
-        android:label="@string/mpv_activity"
+        android:label="UwU Player"
         android:appCategory="video"
         android:localeConfig="@xml/locales_config">
 
@@ -35,6 +40,7 @@
 
         <activity
             android:name=".MPVActivity"
+            android:process=":video"
             android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
             android:supportsPictureInPicture="true"
             android:launchMode="singleTask"
@@ -208,9 +214,17 @@
         </activity>
 
         <activity
+            android:name=".MusicFullscreenActivity"
+            android:process=":music_video"
+            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
+            android:theme="@style/AppTheme"
+            android:exported="false" />
+
+        <activity
             android:name=".MainActivity"
             android:configChanges="orientation|screenSize"
-            android:theme="@style/FilePickerTheme"
+            android:theme="@style/WaguriMainTheme"
+            android:windowSoftInputMode="adjustResize"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -241,12 +255,15 @@
             android:launchMode="singleTop"
             android:label="@string/pref_header_about_mpv" />
 
+        <service android:name=".MusicPlaybackService" android:foregroundServiceType="mediaPlayback" android:exported="false" />
+
         <service
             android:name=".BackgroundPlaybackService"
+            android:process=":video"
             android:foregroundServiceType="mediaPlayback"
             android:exported="false" />
 
-        <receiver android:name=".NotificationButtonReceiver" android:exported="false">
+        <receiver android:name=".NotificationButtonReceiver" android:process=":video" android:exported="false">
             <intent-filter>
                 <action android:name="is.xyz.mpv.PLAY_PAUSE" />
                 <action android:name="is.xyz.mpv.ACTION_PREV" />

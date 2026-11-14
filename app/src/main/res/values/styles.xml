@@ -25,14 +25,15 @@
     </style>
 
     <!-- theme for player UI -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light">
+    <style name="BaseAppTheme" parent="Theme.AppCompat.Light">
         <item name="windowNoTitle">true</item>
         <item name="windowActionBar">false</item>
         <item name="android:windowTranslucentNavigation">true</item>
         <item name="android:windowTranslucentStatus">true</item>
-        <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
         <item name="android:windowBackground">#000000</item>
     </style>
+
+    <style name="AppTheme" parent="BaseAppTheme" />
 
     <!-- theme for preferences -->
     <style name="AppTheme.Preference" parent="Theme.Material3.DayNight">

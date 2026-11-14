@@ -39,7 +39,7 @@ import java.util.List;
 public class FilePickerFragment extends AbstractFilePickerFragment<File> {
 
     protected static final int PERMISSIONS_REQUEST_ID = 1001;
-    protected static final String PERMISSION_PRE33 = Manifest.permission.WRITE_EXTERNAL_STORAGE;
+    protected static final String PERMISSION_PRE33 = Manifest.permission.READ_EXTERNAL_STORAGE;
     @RequiresApi(33)
     protected static final String[] PERMISSIONS_POST33 = {
             Manifest.permission.READ_MEDIA_AUDIO,

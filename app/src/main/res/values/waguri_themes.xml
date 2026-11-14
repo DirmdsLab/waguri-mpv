@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="WaguriMainTheme" parent="Theme.Material3.Dark.NoActionBar">
+        <item name="colorPrimary">#C4B5FD</item>
+        <item name="colorOnPrimary">#211047</item>
+        <item name="colorPrimaryContainer">#352756</item>
+        <item name="colorOnPrimaryContainer">#EBDDFF</item>
+        <item name="colorSecondaryContainer">#303443</item>
+        <item name="colorOnSecondaryContainer">#E5E1F2</item>
+        <item name="colorSurface">#101116</item>
+        <item name="colorSurfaceContainerLow">#15161D</item>
+        <item name="colorSurfaceContainerHigh">#242630</item>
+        <item name="colorOnSurface">#F5F3FA</item>
+        <item name="colorOnSurfaceVariant">#B8B5C4</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="windowActionBar">false</item>
+        <item name="android:windowBackground">?attr/colorSurface</item>
+        <item name="android:statusBarColor">?attr/colorSurface</item>
+        <item name="android:navigationBarColor">?attr/colorSurface</item>
+        <item name="android:windowLightStatusBar">?attr/isLightTheme</item>
+        <item name="android:windowActionModeOverlay">true</item>
+    </style>
+</resources>
