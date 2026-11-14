@@ -21,11 +21,17 @@ A personal-use project (vibe coding).
 
 ## Server Setup
 
-For server setup, refer to the following repository:
+For server setup instructions, refer to the following repository:
 
-https://github.com/DirmdsLab/yt-dlp-script
+[yt-dlp-script](https://github.com/DirmdsLab/yt-dlp-script)
 
 **Port:** `7010`
+
+## Download
+
+**Version:** `debug-2026-11-14`
+
+[Download APK (ARM64-v8a)](https://github.com/DirmdsLab/waguri-mpv/releases/download/debug-2026-11-14/app-default-arm64-v8a-debug.apk)
 
 ## App Compilation
 
