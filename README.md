@@ -35,6 +35,11 @@ Clone the repository:
 git clone https://github.com/DirmdsLab/waguri-mpv.git
 ```
 
+```bash
+cd waguri-mpv
+```
+
+
 ### Build Environment
 
 Keep your host OS clean by using a Podman container:
