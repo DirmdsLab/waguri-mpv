@@ -53,6 +53,10 @@ podman run -dit \
     bash
 ```
 
+```bash
+podman exec -it waguri-mpv bash
+```
+
 Update the package list and installed packages:
 
 ```bash

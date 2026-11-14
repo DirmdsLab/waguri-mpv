@@ -14,7 +14,7 @@ if [ "$os" == "linux" ]; then
 				unzip wget meson gperf nasm
 		elif apt-get -v &>/dev/null; then
 			sudo apt-get install autoconf pkg-config libtool ninja-build \
-				unzip wget meson gperf nasm
+				unzip wget gperf nasm
 		else
 			echo "Note: dependencies were not installed, you have to do that manually."
 		fi
