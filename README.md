@@ -115,6 +115,15 @@ Build the application:
 ./buildall.sh
 ```
 
+if arm64-v8a not compile
+
+re run
+
+```bash
+./buildall.sh --arch arm64
+```
+
+
 ## Build Output
 
 After a successful build, the APK files will be available at the following paths:
@@ -162,3 +171,6 @@ Install the ARM64 debug APK using ADB:
 ```bash
 adb install --user 0 -r app/build/outputs/apk/default/debug/app-default-arm64-v8a-debug.apk
 ```
+
+## Know Bug (Because Vibe Coding :v)
+- stop playback (can't play after that)
