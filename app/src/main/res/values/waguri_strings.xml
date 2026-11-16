@@ -95,6 +95,16 @@
     <string name="lyrics_saved_to_media_folder">Lyrics saved beside the media file as an LRC file.</string>
     <string name="lyrics_save_location_error">Cannot save beside this media file. Re-select its folder and allow write access.</string>
     <string name="lyrics_local_file">Local LRC</string>
+    <string name="lyrics_offline_cache">Offline</string>
+    <string name="lyrics_pick_file">Choose LRC</string>
+    <string name="lyrics_delete">Delete</string>
+    <string name="lyrics_delete_title">Delete lyrics?</string>
+    <string name="lyrics_delete_message">The LRC file beside this track and the offline copy will be removed. You can search or choose another lyrics file afterwards.</string>
+    <string name="lyrics_deleted">Lyrics deleted.</string>
+    <string name="lyrics_delete_failed">Could not delete the LRC file. Re-select its folder and allow write access.</string>
+    <string name="lyrics_imported">Lyrics loaded from the selected file.</string>
+    <string name="lyrics_imported_offline">Cannot write beside the media file, so the lyrics were saved offline inside the app.</string>
+    <string name="lyrics_import_failed">Could not read the selected lyrics file.</string>
     <string name="stop_playback">Stop Playback</string>
     <string name="playback_stopped">Playback stopped.</string>
     <string name="stop_playback_failed">Could not stop playback.</string>

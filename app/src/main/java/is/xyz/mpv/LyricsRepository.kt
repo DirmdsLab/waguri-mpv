@@ -88,6 +88,12 @@ internal class LyricsRepository(context: Context) {
         }
     }
 
+    /** Removes the app's offline copy for this media item. */
+    fun deleteOffline(mediaKey: String) {
+        val file = offlineFile(mediaKey)
+        if (file.exists() && !file.delete()) throw IOException("Could not delete cached lyrics")
+    }
+
     private fun offlineFile(mediaKey: String): File {
         val key =
             MessageDigest.getInstance("SHA-256")

@@ -161,6 +161,7 @@ class MainScreenFragment : Fragment(R.layout.fragment_main_screen) {
     private lateinit var folderTreePickerLauncher: ActivityResultLauncher<Uri?>
     private lateinit var mediaFilePickerLauncher: ActivityResultLauncher<Array<String>>
     private lateinit var playlistFilePickerLauncher: ActivityResultLauncher<Array<String>>
+    private lateinit var lyricsFilePickerLauncher: ActivityResultLauncher<Array<String>>
     private lateinit var playlistFolderPickerLauncher: ActivityResultLauncher<Uri?>
     private lateinit var playlistExportLauncher: ActivityResultLauncher<String>
     private var pendingPlaylistFiles: List<Uri> = emptyList()
@@ -337,7 +338,7 @@ class MainScreenFragment : Fragment(R.layout.fragment_main_screen) {
                                     listOfNotNull(artist, title).joinToString(" ").trim()
                                 )
                             }
-                            loadLocalLyricsForCurrentMedia()
+                            if (activeLyricsResult == null) loadLocalLyricsForCurrentMedia()
                             updatePlaybackUi()
                             updateNavigationButtons()
 
@@ -515,6 +516,11 @@ class MainScreenFragment : Fragment(R.layout.fragment_main_screen) {
                 if (uri != null) openPlaylistFiles(listOf(uri))
             }
 
+        lyricsFilePickerLauncher =
+            registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+                if (uri != null) importLyricsFile(uri)
+            }
+
         playlistFolderPickerLauncher =
             registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { folder ->
                 val files = pendingPlaylistFiles
@@ -575,6 +581,7 @@ class MainScreenFragment : Fragment(R.layout.fragment_main_screen) {
         defaultLibraryTabRipple = binding.librarySections.tabRippleColor
         ambientEnabled = preferences.getBoolean(PREFERENCE_AMBIENT_ENABLED, false)
         ambientReach = preferences.getInt(PREFERENCE_AMBIENT_REACH, 35).coerceIn(0, 100)
+        restoreSortPreference()
         ambientLight = AmbientLightDrawable(
             MaterialColors.getColor(binding.root, com.google.android.material.R.attr.colorSurface),
         ).also {
@@ -756,6 +763,12 @@ class MainScreenFragment : Fragment(R.layout.fragment_main_screen) {
         }
         binding.lyricsSearchButton.setOnClickListener { searchLyrics() }
         binding.lyricsDownloadButton.setOnClickListener { downloadCurrentLyrics() }
+        binding.lyricsPickFileButton.setOnClickListener {
+            if (currentMedia != null && !checkingLocalLyrics && !savingLyrics) {
+                lyricsFilePickerLauncher.launch(arrayOf("*/*"))
+            }
+        }
+        binding.lyricsDeleteButton.setOnClickListener { confirmDeleteLyrics() }
         binding.saveLyricsDelayButton.setOnClickListener { downloadCurrentLyrics(saveDelay = true) }
         binding.lyricsDelayButton.setOnClickListener {
             binding.lyricsDelayControls.isVisible = !binding.lyricsDelayControls.isVisible
@@ -2173,10 +2186,16 @@ class MainScreenFragment : Fragment(R.layout.fragment_main_screen) {
 
         val generation = ++localLyricsGeneration
         val store = lyricsSidecarStore
+        val repository = lyricsRepository
+        val mediaKey = media.cacheKey
         checkingLocalLyrics = true
         updateLyricsDownloadButton()
         lyricsExecutor.execute {
             val result = runCatching { store.load(media) }
+            val offline =
+                if (result.getOrNull() == null) {
+                    runCatching { repository.loadOffline(mediaKey) }.getOrNull()
+                } else null
             playbackHandler.post {
                 if (
                     _binding == null || generation != localLyricsGeneration ||
@@ -2189,10 +2208,139 @@ class MainScreenFragment : Fragment(R.layout.fragment_main_screen) {
                 val localLyrics = result.getOrNull()
                 if (localLyrics != null) {
                     displayLocalLyrics(localLyrics)
+                } else if (offline != null) {
+                    displayOfflineLyrics(offline)
                 } else {
                     updateLyricsDownloadButton()
                     result.onFailure { Log.w(TAG, "Could not inspect the media folder for an LRC sidecar", it) }
                     if (searchOnlineIfMissing) loadAutoLyricsForCurrentMedia()
+                }
+            }
+        }
+    }
+
+    private fun displayOfflineLyrics(result: LyricsResult) {
+        lyricsGeneration++
+        autoLyricsGeneration++
+        localLyricsGeneration++
+        checkingLocalLyrics = false
+        displayLyrics(
+            result,
+            persistOffline = false,
+            savedBesideMedia = false,
+            sourceLabelRes = R.string.lyrics_offline_cache,
+        )
+    }
+
+    private fun confirmDeleteLyrics() {
+        val media = currentMedia ?: return
+        if (checkingLocalLyrics || savingLyrics) return
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.lyrics_delete_title)
+            .setMessage(R.string.lyrics_delete_message)
+            .setNegativeButton(android.R.string.cancel, null)
+            .setPositiveButton(R.string.lyrics_delete) { _, _ -> deleteLyricsFor(media) }
+            .show()
+    }
+
+    /** Removes both the LRC beside the media file and the app's offline copy. */
+    private fun deleteLyricsFor(media: MediaFile) {
+        val generation = ++lyricsDownloadGeneration
+        val store = lyricsSidecarStore
+        val repository = lyricsRepository
+        val mediaKey = media.cacheKey
+        savingLyrics = true
+        autoLyricsGeneration++
+        localLyricsGeneration++
+        updateLyricsDownloadButton()
+
+        lyricsExecutor.execute {
+            val sidecar = runCatching { store.delete(media) }
+            val offline = runCatching { repository.deleteOffline(mediaKey) }
+            playbackHandler.post {
+                if (
+                    _binding == null || generation != lyricsDownloadGeneration ||
+                        currentMedia?.uri != media.uri
+                ) {
+                    return@post
+                }
+                val failed = sidecar.exceptionOrNull() ?: offline.exceptionOrNull()
+                savingLyrics = false
+                resetLyrics()
+                if (failed != null) {
+                    Log.w(TAG, "Could not delete lyrics", failed)
+                    // The LRC may still be there; show whatever is left.
+                    loadLocalLyricsForCurrentMedia(searchOnlineIfMissing = false)
+                    Toast.makeText(requireContext(), R.string.lyrics_delete_failed, Toast.LENGTH_LONG).show()
+                } else {
+                    binding.lyricsStatus.setText(R.string.lyrics_deleted)
+                    Toast.makeText(requireContext(), R.string.lyrics_deleted, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    /** Uses a user-chosen .lrc/.txt file as the lyrics for the current track. */
+    private fun importLyricsFile(uri: Uri) {
+        val media = currentMedia ?: return
+        if (media.isPlaylist || checkingLocalLyrics || savingLyrics) return
+        val generation = ++lyricsDownloadGeneration
+        val store = lyricsSidecarStore
+        val repository = lyricsRepository
+        val mediaKey = media.cacheKey
+        val resolver = requireContext().contentResolver
+        savingLyrics = true
+        autoLyricsGeneration++
+        localLyricsGeneration++
+        updateLyricsDownloadButton()
+        binding.lyricsStatus.setText(R.string.lyrics_saving_to_media_folder)
+
+        lyricsExecutor.execute {
+            val text = runCatching {
+                resolver.openInputStream(uri)?.use { input ->
+                    val bytes = input.readBytes()
+                    if (bytes.size > 2_000_000) throw java.io.IOException("LRC file is too large")
+                    String(bytes, Charsets.UTF_8)
+                } ?: throw java.io.IOException("Could not open the selected file")
+            }
+            val saved = text.mapCatching { store.replaceWithLrc(media, it) }
+            // No write access beside the media file: keep it in the app's offline storage.
+            val fallback =
+                if (text.isSuccess && saved.isFailure) {
+                    runCatching {
+                        store.parse(text.getOrThrow(), media.displayName).also {
+                            repository.saveOffline(mediaKey, it)
+                        }
+                    }
+                } else null
+
+            playbackHandler.post {
+                if (
+                    _binding == null || generation != lyricsDownloadGeneration ||
+                        currentMedia?.uri != media.uri
+                ) {
+                    return@post
+                }
+                savingLyrics = false
+                val savedLyrics = saved.getOrNull()
+                val fallbackLyrics = fallback?.getOrNull()
+                when {
+                    savedLyrics != null -> {
+                        runCatching { repository.deleteOffline(mediaKey) }
+                        displayLocalLyrics(savedLyrics)
+                        Toast.makeText(requireContext(), R.string.lyrics_imported, Toast.LENGTH_SHORT).show()
+                    }
+
+                    fallbackLyrics != null -> {
+                        displayOfflineLyrics(fallbackLyrics)
+                        Toast.makeText(requireContext(), R.string.lyrics_imported_offline, Toast.LENGTH_LONG).show()
+                    }
+
+                    else -> {
+                        saved.exceptionOrNull()?.let { Log.w(TAG, "Could not import the LRC file", it) }
+                        updateLyricsDownloadButton()
+                        Toast.makeText(requireContext(), R.string.lyrics_import_failed, Toast.LENGTH_LONG).show()
+                    }
                 }
             }
         }
@@ -2466,6 +2614,10 @@ class MainScreenFragment : Fragment(R.layout.fragment_main_screen) {
                 if (lyricsSavedBesideMedia) R.string.lyrics_downloaded
                 else R.string.lyrics_download_description
             )
+        val busy = checkingLocalLyrics || savingLyrics
+        _binding?.lyricsPickFileButton?.isEnabled = currentMedia != null && !busy
+        _binding?.lyricsDeleteButton?.isEnabled =
+            currentMedia != null && !busy && (lyricsSavedBesideMedia || activeLyricsResult != null)
         updateLyricsDelaySaveButton()
     }
 
@@ -2844,7 +2996,24 @@ class MainScreenFragment : Fragment(R.layout.fragment_main_screen) {
             // Default order: A-Z, newest first, and shortest first.
             sortAscending = mode != SortMode.LAST_MODIFIED
         }
+        saveSortPreference()
         renderMedia()
+    }
+
+    private fun restoreSortPreference() {
+        val savedMode = preferences.getString(PREFERENCE_SORT_MODE, null)
+        sortMode = SortMode.entries.firstOrNull { it.name == savedMode } ?: SortMode.NAME
+        sortAscending = preferences.getBoolean(
+            PREFERENCE_SORT_ASCENDING,
+            sortMode != SortMode.LAST_MODIFIED,
+        )
+    }
+
+    private fun saveSortPreference() {
+        preferences.edit()
+            .putString(PREFERENCE_SORT_MODE, sortMode.name)
+            .putBoolean(PREFERENCE_SORT_ASCENDING, sortAscending)
+            .apply()
     }
 
 
@@ -3861,6 +4030,9 @@ class MainScreenFragment : Fragment(R.layout.fragment_main_screen) {
         updateVisualizerAppearance()
         binding.audioSpectrumView.setActive(true)
         loadArtwork(mediaFile)
+        // Offline lyrics (LRC beside the file or the app's offline copy) show right away,
+        // without waiting for MPV to finish loading. Online search still runs on FILE_LOADED.
+        loadLocalLyricsForCurrentMedia(searchOnlineIfMissing = false)
     }
 
     private fun updateNowPlayingText(
@@ -4748,6 +4920,8 @@ class MainScreenFragment : Fragment(R.layout.fragment_main_screen) {
         private const val PREFERENCE_MEDIASTORE_VOLUME = "media_store_volume"
         private const val PREFERENCE_VISUALIZER_ENABLED = "audio_visualizer_enabled"
         private const val PREFERENCE_AUTO_LYRICS_ENABLED = "auto_lyrics_enabled"
+        private const val PREFERENCE_SORT_MODE = "track_sort_mode"
+        private const val PREFERENCE_SORT_ASCENDING = "track_sort_ascending"
         private const val PREFERENCE_PLAYER_WIDE_ASPECT = "player_wide_aspect"
         private const val PREFERENCE_PLAYER_ZOOM_STEP = "player_zoom_step"
         private const val PLAYBACK_UPDATE_INTERVAL_MS = 200L

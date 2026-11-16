@@ -37,6 +37,60 @@ internal class LyricsSidecarStore(context: Context) {
     fun saveWithDelay(media: MediaFile, result: LyricsResult, delayMs: Long): LyricsResult =
         save(media, result, delayMs)
 
+    internal fun parse(text: String, mediaName: String): LyricsResult = parseLrc(text, mediaName)
+
+    /** Deletes the LRC sidecar (and legacy-named duplicates). Returns true if anything was removed. */
+    @Synchronized
+    fun delete(media: MediaFile): Boolean {
+        val name = sidecarName(media.displayName)
+        var deleted = false
+        repeat(4) {
+            val existing = findExistingSidecar(media, name) ?: return deleted
+            deleteSidecar(existing)
+            deleted = true
+        }
+        return deleted
+    }
+
+    private fun deleteSidecar(uri: Uri) {
+        val path = uri.path
+        val removed =
+            if (uri.scheme == "file" && path != null) {
+                File(path).delete()
+            } else if (isDocumentUri(uri)) {
+                runCatching { DocumentsContract.deleteDocument(resolver, uri) }.getOrDefault(false)
+            } else {
+                runCatching { resolver.delete(uri, null, null) > 0 }.getOrDefault(false)
+            }
+        if (!removed) throw IOException("Could not delete the LRC file")
+    }
+
+    /** Writes a user-chosen LRC text as the sidecar, replacing an existing one. */
+    @Synchronized
+    fun replaceWithLrc(media: MediaFile, lrcText: String): LyricsResult {
+        if (lrcText.length > MAX_LRC_CHARS) throw IOException("The LRC file is too large")
+        val content = lrcText.removePrefix("\uFEFF")
+        val sidecarName = sidecarName(media.displayName)
+        val existing = findExistingSidecar(media, sidecarName)
+        if (existing != null) {
+            overwriteSidecar(existing, readSidecarText(existing), content)
+            return parseLrc(content, media.displayName)
+        }
+
+        val documentParent = resolveDocumentParent(media)
+        if (documentParent != null) {
+            saveDocument(documentParent, sidecarName, content)
+        } else if (media.uri.scheme == "file") {
+            val parent = localMediaFile(media.uri)?.parentFile ?: throw IOException("Media folder is unavailable")
+            File(parent, sidecarName).writeText(content, Charsets.UTF_8)
+        } else if (isMediaStoreUri(media.uri)) {
+            saveMediaStore(media, sidecarName, content)
+        } else {
+            throw IOException("This media provider does not expose a writable parent folder")
+        }
+        return parseLrc(content, media.displayName)
+    }
+
     private fun save(media: MediaFile, result: LyricsResult, delayMs: Long? = null): LyricsResult {
         val sidecarName = sidecarName(media.displayName)
         val existing = findExistingSidecar(media, sidecarName)
