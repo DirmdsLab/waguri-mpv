@@ -3,12 +3,12 @@
         <activity
             android:name=".IntentTestActivity"
             android:exported="false"
-            android:configChanges="orientation|screenSize"
+            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize"
             android:theme="@style/FilePickerTheme" />
         <activity
             android:name=".CodecInfoActivity"
             android:exported="false"
-            android:configChanges="orientation|screenSize"
+            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize"
             android:theme="@style/FilePickerTheme" />
     </application>
 </manifest>

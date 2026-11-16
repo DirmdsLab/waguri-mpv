@@ -222,7 +222,7 @@
 
         <activity
             android:name=".MainActivity"
-            android:configChanges="orientation|screenSize"
+            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize"
             android:theme="@style/WaguriMainTheme"
             android:windowSoftInputMode="adjustResize"
             android:exported="true">
@@ -236,13 +236,14 @@
 
         <activity
             android:name=".FilePickerActivity"
-            android:configChanges="orientation|screenSize"
+            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize"
             android:screenOrientation="behind"
             android:theme="@style/FilePickerThemeSpecial"
             android:exported="false" />
 
         <activity
             android:name=".preferences.PreferenceActivity"
+            android:configChanges="keyboard|keyboardHidden|navigation"
             android:theme="@style/AppTheme.Preference"
             android:parentActivityName=".MainActivity"
             android:launchMode="singleTop"
@@ -250,6 +251,7 @@
 
         <activity
             android:name=".preferences.AboutActivity"
+            android:configChanges="keyboard|keyboardHidden|navigation"
             android:theme="@style/AppTheme.Preference"
             android:parentActivityName=".preferences.PreferenceActivity"
             android:launchMode="singleTop"
