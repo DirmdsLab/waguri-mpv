@@ -2630,6 +2630,9 @@ class MainScreenFragment : Fragment(R.layout.fragment_main_screen) {
             MPVLib.addObserver(mpvObserver)
             playerInitialized = true
             MPVLib.setPropertyString("keep-open", "yes")
+            // BaseMPVView sets idle=once, which makes mpv quit after the first file stops
+            // ("stop" included). Keep the core alive so tracks can be played after Stop Playback.
+            MPVLib.setPropertyString("idle", "yes")
 
             playbackHandler.removeCallbacks(playbackTicker)
             playbackHandler.post(playbackTicker)
